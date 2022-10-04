@@ -6,10 +6,10 @@ typedef struct Memory {
 	byte data[MAX_MEM];
 
 	void (*init) (void);
-	byte (*fetch) (uint32_t, struct Memory*);
+	byte (*fetch) (uint32_t);
 
-	void (*push) (byte value);
-	byte (*pop) (void);
+	void (*push) (byte value, uint32_t cycles);
+	byte (*pop) (uint32_t cycles);
 } Memory;
 
 extern Memory mem;

@@ -16,7 +16,7 @@ typedef struct P_type {
 
 typedef struct CPU {
 	word 	PC; 			// Program Counter
-	word 	SP; 			// Stack Pointer
+	byte 	SP; 			// Stack Pointer (gets added to 0x100 to get the next free byte on the stack)
 	P_type 	P;				// Processor status
 
 	byte 	A; 				// Accumulator
@@ -24,6 +24,7 @@ typedef struct CPU {
 
 	void (*reset) (Memory*);			// Reset the processor
 	void (*exec) (uint32_t, Memory*);	// Execute instruction
+	byte (*status_to_byte) (P_type);
 } CPU;
 
 extern CPU cpu;
