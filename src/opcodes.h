@@ -1,6 +1,8 @@
 #pragma once
 
 #include "main.h"
+#include "cpu.h"
+#include "memory.h"
 
 //
 // instructions paired to their byte

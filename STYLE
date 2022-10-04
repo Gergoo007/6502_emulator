@@ -1,0 +1,12 @@
+Coding Style
+Register names: always UPPERCASE
+
+The processor status register consists of 8 bits (1 byte):
+0. Carry flag			:C: 9th bit of ADC (addition) result
+1. Zero flag			:Z: 0 if result is not zero, 1 if result is 0
+2. IRQ disable flag		:I: Set by SEI (set interrupt disable), cleared by CLI (clear interrupt flag)
+3. Decimal mode flag	:D: 1 if true, 0 if false
+4. Break Command flag	:B: 
+5. UNUSED				:-: 
+6. Overflow flag		:V: 1 if true, 0 if false
+7. Negative flag		:N: 1 if result is negative, 0 if result is positive
