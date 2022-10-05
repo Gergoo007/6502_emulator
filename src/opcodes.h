@@ -12,6 +12,7 @@
 //	LOAD
 //
 #define LDA_IM 	0xa9
+#define LDA_ABS	0xad
 #define LDA_ZP 	0xa5
 #define LDA_ZX 	0xb5
 

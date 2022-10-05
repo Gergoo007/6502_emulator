@@ -19,10 +19,10 @@ void push(byte value, uint32_t cycles) {
 }
 
 byte pop(uint32_t cycles) {
+	byte val = mem.data[0x100 + cpu.SP + 1];
+	mem.data[0x100 + cpu.SP + 1] = 0x00;
 	cycles--;
 	cpu.SP++;
-	byte val = mem.data[0x100 + cpu.SP];
-	mem.data[0x100 + cpu.SP + 1] = 0x00;
 	return val;
 }
 

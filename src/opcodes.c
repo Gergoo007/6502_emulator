@@ -3,6 +3,18 @@
 
 #include <stdio.h>
 
+void dump_stackk() {
+	printf("Stack: \n");
+	for (uint32_t i = 0x100; i < 0x200; i += 16) {
+		printf("0x%04x: ", i);
+		for (uint32_t j = 0; j < 16; j++) {
+			printf("0x%02x ", mem.data[i + j]);
+		}
+		printf("\n");
+	}
+}
+
+
 void lda_flagcheck() {
 	if(cpu.A == 0)
 		cpu.P.Z = 1;
@@ -45,6 +57,7 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 		case BRK:
 			cycles -= 2;
 			break;
+
 		case NOP:
 			cycles -= 2;
 			break;
@@ -54,8 +67,36 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			lda_flagcheck();
 			break;
 
+		case LDA_ABS:
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			printf("\n %04x \n", (arg2 << 8) + arg1);
+			cpu->A = mem->data[(arg2 << 8) + arg1];
+			lda_flagcheck();
+			break;
+
+		case LDA_ZP:
+			cpu->A = mem->data[mem->fetch(cycles)];
+			lda_flagcheck();
+			break;
+
+		case LDA_ZX:
+			cpu->A = mem->data[mem->fetch(cycles) + cpu->X];
+			lda_flagcheck();
+			break;
+
 		case LDX_IM:
 			cpu->X = mem->fetch(cycles);
+			ldx_flagcheck();
+			break;
+
+		case LDX_ZP:
+			cpu->X = mem->data[mem->fetch(cycles)];
+			ldx_flagcheck();
+			break;
+
+		case LDX_ZY:
+			cpu->X = mem->data[mem->fetch(cycles) + cpu->Y];
 			ldx_flagcheck();
 			break;
 
@@ -64,29 +105,9 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			ldy_flagcheck();
 			break;
 
-		case LDA_ZP:
-			cpu->A = mem->data[mem->fetch(cycles)];
-			lda_flagcheck();
-			break;
-
-		case LDX_ZP:
-			cpu->X = mem->data[mem->fetch(cycles)];
-			ldx_flagcheck();
-			break;
-
 		case LDY_ZP:
 			cpu->Y = mem->data[mem->fetch(cycles)];
 			ldy_flagcheck();
-			break;
-
-		case LDA_ZX:
-			cpu->A = mem->data[mem->fetch(cycles) + cpu->X];
-			lda_flagcheck();
-			break;
-		
-		case LDX_ZY:
-			cpu->X = mem->data[mem->fetch(cycles) + cpu->Y];
-			ldx_flagcheck();
 			break;
 		
 		case LDY_ZX:
@@ -95,7 +116,7 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		case JMP_ABS:
-			cpu->PC = mem->fetch(cycles) - 1;
+			cpu->PC = mem->fetch(cycles) + (mem->fetch(cycles) << 8) - 1;
 			break;
 
 		case JMP_IND:
@@ -110,7 +131,7 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		case PLA:
-			cpu->SP--;
+			//cpu->SP--;
 			cpu->A = mem->pop(cpu->SP - 1);
 			cycles--;
 			break;
@@ -141,15 +162,20 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		case STA_ABS:
-			mem->data[(mem->fetch(cycles) << 8) + mem->fetch(cycles)] = cpu->A;
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			printf("\n %04x \n", ((arg2 << 8) + arg1));
+			mem->data[((arg2 << 8) + arg1)] = cpu->A;
 			break;
 
 		case STA_ABS_X:
-			mem->data[((mem->fetch(cycles) << 8) + mem->fetch(cycles)) + cpu->X] = cpu->A;
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			mem->data[(arg2 << 8) + arg1 + cpu->X] = cpu->A;
 			break;
 
 		case STA_ABS_Y:
-			mem->data[((mem->fetch(cycles) << 8) + mem->fetch(cycles)) + cpu->Y] = cpu->A;
+			mem->data[(arg2 << 8) + arg1 + cpu->Y] = cpu->A;
 			break;
 
 		case STA_ZP:

@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "opcodes.h"
 
 void _reset_cpu(Memory* mem) {
 	cpu.PC = mem->data[0xfffd] * 0x100 + mem->data[0xfffc];
@@ -10,6 +11,9 @@ void _reset_cpu(Memory* mem) {
 void _exec_cpu_step(uint32_t steps, Memory *mem) {
 	while (steps > 0) {
 		byte instruct = mem->fetch(0xff);
+
+		if(instruct == BRK)
+			break;
 
 		execute(instruct, &cpu, mem, 0xff);
 
@@ -30,7 +34,8 @@ void _exec_cpu_cycle(uint32_t cycles, Memory *mem) {
 void _exec_cpu_cont(Memory *mem) {
 	while (1) {
 		byte instruct = mem->fetch(0xffff);
-
+		if(instruct == BRK)
+			break;
 		execute(instruct, &cpu, mem, 0xffff);
 	}
 }
