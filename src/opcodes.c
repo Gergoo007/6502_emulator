@@ -41,7 +41,10 @@ void ldy_flagcheck() {
 
 void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 	byte arg1, arg2;
-	switch (instruct) {		
+	switch (instruct) {
+		case BRK:
+			cycles -= 2;
+			break;
 		case NOP:
 			cycles -= 2;
 			break;
@@ -117,22 +120,14 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		case JSR:
-			arg1 = cpu->PC >> 8;
-			arg2 = cpu->PC & 0x00ff;
-			mem->push(arg2 + 2, cycles);
-			mem->push(arg1, cycles);
-			printf("||%04x||", (arg2 + (arg1 << 8)));
+			mem->push((cpu->PC & 0x00ff) + 2, cycles);
+			mem->push(cpu->PC >> 8, cycles);
 
-			arg1 = mem->fetch(cycles);
-			arg2 = mem->fetch(cycles);
-			cpu->PC = (arg1 + (arg2 << 8));
-			printf("||%04x||", (arg1 + (arg2 << 8)));
+			cpu->PC = (mem->fetch(cycles) + (mem->fetch(cycles) << 8));
 			break;
 
 		case RTS:
-			arg1 = mem->pop(cycles); // 80
-			arg2 = mem->pop(cycles); // 03
-			cpu->PC = (arg1 << 8) + arg2;
+			cpu->PC = (mem->pop(cycles) << 8) + mem->pop(cycles);
 			break;
 
 		case INX:
@@ -143,6 +138,83 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 		case INY:
 			cpu->Y++;
 			ldy_flagcheck();
+			break;
+
+		case STA_ABS:
+			mem->data[(mem->fetch(cycles) << 8) + mem->fetch(cycles)] = cpu->A;
+			break;
+
+		case STA_ABS_X:
+			mem->data[((mem->fetch(cycles) << 8) + mem->fetch(cycles)) + cpu->X] = cpu->A;
+			break;
+
+		case STA_ABS_Y:
+			mem->data[((mem->fetch(cycles) << 8) + mem->fetch(cycles)) + cpu->Y] = cpu->A;
+			break;
+
+		case STA_ZP:
+			mem->data[mem->fetch(cycles)] = cpu->A;
+			break;
+
+		case STA_ZP_X:
+			mem->data[mem->fetch(cycles) + cpu->X] = cpu->A;
+			break;
+
+		case STA_IND_X:
+			mem->data[mem->data[(mem->fetch(cycles) << 8) + mem->fetch(cycles) + cpu->X]] = cpu->A;
+			cpu->A += cpu->X;
+			break;
+
+		case STA_IND_Y:
+			mem->data[mem->data[(mem->fetch(cycles) << 8) + mem->fetch(cycles)] + cpu->Y] = cpu->A;
+			break;
+
+		case STX_ABS:
+			mem->data[(mem->fetch(cycles) << 8) + mem->fetch(cycles)] = cpu->X;
+			break;
+
+		case STX_ZP:
+			mem->data[mem->fetch(cycles)] = cpu->X;
+			break;
+
+		case STX_ZP_Y:
+			mem->data[mem->fetch(cycles) + cpu->Y] = cpu->X;
+			break;
+
+		case STY_ABS:
+			mem->data[(mem->fetch(cycles) << 8) + mem->fetch(cycles)] = cpu->Y;
+			break;
+
+		case STY_ZP:
+			mem->data[mem->fetch(cycles)] = cpu->Y;
+			break;
+
+		case STY_ZP_X:
+			mem->data[mem->fetch(cycles) + cpu->X] = cpu->Y;
+			break;
+
+		case TAX:
+			cpu->X = cpu->A;
+			break;
+
+		case TXA:
+			cpu->A = cpu->X;
+			break;
+
+		case TAY:
+			cpu->Y = cpu->A;
+			break;
+
+		case TYA:
+			cpu->A = cpu->Y;
+			break;
+
+		case TXS:
+			cpu->X = cpu->SP;
+			break;
+
+		case TSX:
+			cpu->SP = cpu->X;
 			break;
 
 		default:

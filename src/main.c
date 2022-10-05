@@ -37,10 +37,10 @@ int main(void) {
 	mem.data[0x8002] = 0x80;
 	mem.data[0x8003] = LDA_IM;
 	mem.data[0x8004] = 0x36;
-	mem.data[0x8005] = PHP;
+	mem.data[0x8005] = RTS;
 	cpu.reset(&mem);
 	
-	cpu.exec(0x0c, &mem);
+	cpu.exec_by_step(0x05, &mem);
 
 	// Debug
 	printf("A: 0x%02x; X: 0x%02x; Y: 0x%02x\n", cpu.A, cpu.X, cpu.Y);

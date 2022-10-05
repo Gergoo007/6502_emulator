@@ -7,13 +7,31 @@ void _reset_cpu(Memory* mem) {
 	memset(&cpu.P, 0, sizeof(cpu.P));
 }
 
-void _exec_cpu(uint32_t cycles, Memory *mem) {
+void _exec_cpu_step(uint32_t steps, Memory *mem) {
+	while (steps > 0) {
+		byte instruct = mem->fetch(0xff);
+
+		execute(instruct, &cpu, mem, 0xff);
+
+		steps--;
+	}
+}
+
+void _exec_cpu_cycle(uint32_t cycles, Memory *mem) {
 	while (cycles > 0) {
 		byte instruct = mem->fetch(cycles);
 
 		execute(instruct, &cpu, mem, cycles);
 
 		cycles--;
+	}
+}
+
+void _exec_cpu_cont(Memory *mem) {
+	while (1) {
+		byte instruct = mem->fetch(0xffff);
+
+		execute(instruct, &cpu, mem, 0xffff);
 	}
 }
 
@@ -33,6 +51,8 @@ byte status_to_byte(P_type P) {
 
 void emu_cpu_init() {
 	cpu.reset = _reset_cpu;
-	cpu.exec = _exec_cpu;
-	cpu.status_to_byte = status_to_byte;
+	cpu.exec_by_cycles 	= _exec_cpu_cycle;
+	cpu.exec_by_step 	= _exec_cpu_step;
+	cpu.exec_continous 	= _exec_cpu_cont;
+	cpu.status_to_byte 	= status_to_byte;
 }

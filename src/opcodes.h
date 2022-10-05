@@ -24,6 +24,35 @@
 #define LDY_ZX 	0xb4
 
 //
+// STORE
+//
+#define STA_ABS		0x8d
+#define STA_ABS_X	0x9d
+#define STA_ABS_Y	0x99
+#define STA_ZP		0x85
+#define STA_ZP_X	0x95
+#define STA_IND_X	0x81
+#define STA_IND_Y	0x91
+
+#define STX_ABS		0x8e
+#define STX_ZP		0x86
+#define STX_ZP_Y	0x96
+
+#define STY_ABS		0x8c
+#define STY_ZP		0x84
+#define STY_ZP_X	0x94
+
+//
+//	TRANSFER
+//
+#define TAX 		0xaa
+#define TAY 		0xa8
+#define TSX			0xba
+#define TXS			0x9a
+#define TXA			0x8a
+#define TYA			0x98
+
+//
 // INCREMENT
 //
 #define INX 	0xe8
@@ -53,5 +82,6 @@
 //	MISCELLANEOUS
 //	
 #define NOP		0xea
+#define BRK		0x00
 
 extern void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles);
