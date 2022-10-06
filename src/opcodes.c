@@ -21,7 +21,7 @@ void lda_flagcheck() {
 	else
 		cpu.P.Z = 0;
 	
-	if((cpu.A & 0b01000000) > 0)
+	if((cpu.A & 0b10000000) > 0)
 		cpu.P.N = 1;
 	else
 		cpu.P.N = 0;
@@ -33,7 +33,7 @@ void ldx_flagcheck() {
 	else
 		cpu.P.Z = 0;
 
-	if((cpu.A & 0b01000000) > 0)
+	if((cpu.A & 0b10000000) > 0)
 		cpu.P.N = 1;
 	else
 		cpu.P.N = 0;
@@ -45,14 +45,14 @@ void ldy_flagcheck() {
 	else
 		cpu.P.Z = 0;
 
-	if((cpu.Y & 0b01000000) > 0)
+	if((cpu.Y & 0b10000000) > 0)
 		cpu.P.N = 1;
 	else
 		cpu.P.N = 0;
 }
 
 void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
-	byte arg1, arg2;
+	byte arg1, arg2, arg3;
 	switch (instruct) {
 		case BRK:
 			cycles -= 2;
@@ -262,6 +262,119 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 					cpu->PC--;
 				}
 			}
+			break;
+
+		case CMP_IM:
+			arg1 = mem->fetch(cycles);
+			cpu->P.Z = cpu->A == arg1;
+			cpu->P.C = cpu->A >= arg1;
+			cpu->P.N = (cpu->A - arg1) < 0;
+			break;
+
+		case CMP_ZP:
+			arg1 = mem->data[mem->fetch(cycles)];
+			cpu->P.Z = cpu->A == arg1;
+			cpu->P.C = cpu->A >= arg1;
+			cpu->P.N = (cpu->A - arg1) < 0;
+			break;
+
+		case CMP_ZP_X:
+			arg1 = mem->data[mem->fetch(cycles) + cpu->X];
+			cpu->P.Z = cpu->A == arg1;
+			cpu->P.C = cpu->A >= arg1;
+			cpu->P.N = (cpu->A - arg1) < 0;
+			break;
+
+		case CMP_ABS:
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			arg1 = mem->data[(arg2 << 8) + arg1];
+			cpu->P.Z = cpu->A == arg1;
+			cpu->P.C = cpu->A >= arg1;
+			cpu->P.N = (cpu->A - arg1) < 0;
+			break;
+
+		case CMP_ABS_X:
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			arg1 = mem->data[(arg2 << 8) + arg1 + cpu->X];
+			cpu->P.Z = cpu->A == arg1;
+			cpu->P.C = cpu->A >= arg1;
+			cpu->P.N = (cpu->A - arg1) < 0;
+			break;
+
+		case CMP_ABS_Y:
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			arg1 = mem->data[(arg2 << 8) + arg1 + cpu->Y];
+			cpu->P.Z = cpu->A == arg1;
+			cpu->P.C = cpu->A >= arg1;
+			cpu->P.N = (cpu->A - arg1) < 0;
+			break;
+
+		case CMP_IND_X:
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			arg3 = (mem->data[(arg2 << 8) + arg1 + cpu->X] << 8) + mem->data[(arg2 << 8) + arg1 + cpu->X + 1];
+			cpu->P.Z = cpu->A == arg3;
+			cpu->P.C = cpu->A >= arg3;
+			cpu->P.N = (cpu->A - arg1) < 0;
+			break;
+
+		case CMP_IND_Y:
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			arg3 = (mem->data[(arg2 << 8) + arg1] << 8) + mem->data[(arg2 << 8) + arg1 + 1];
+			arg3 += cpu->Y;
+			cpu->P.Z = cpu->A == arg3;
+			cpu->P.C = cpu->A >= arg3;
+			cpu->P.N = (cpu->A - arg1) < 0;
+			break;
+
+		case CPX_IM:
+			arg1 = mem->fetch(cycles);
+			cpu->P.Z = cpu->X == arg1;
+			cpu->P.C = cpu->X >= arg1;
+			cpu->P.N = (cpu->X - arg1) < 0;
+			break;
+
+		case CPX_ZP:
+			arg1 = mem->data[mem->fetch(cycles)];
+			cpu->P.Z = cpu->X == arg1;
+			cpu->P.C = cpu->X >= arg1;
+			cpu->P.N = (cpu->X - arg1) < 0;
+			break;
+
+		case CPX_ABS:
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			arg1 = mem->data[(arg2 << 8) + arg1];
+			cpu->P.Z = cpu->X == arg1;
+			cpu->P.C = cpu->X >= arg1;
+			cpu->P.N = (cpu->X - arg1) < 0;
+			break;
+
+		case CPY_IM:
+			arg1 = mem->fetch(cycles);
+			cpu->P.Z = cpu->Y == arg1;
+			cpu->P.C = cpu->Y >= arg1;
+			cpu->P.N = (cpu->Y - arg1) < 0;
+			break;
+
+		case CPY_ZP:
+			arg1 = mem->data[mem->fetch(cycles)];
+			cpu->P.Z = cpu->Y == arg1;
+			cpu->P.C = cpu->Y >= arg1;
+			cpu->P.N = (cpu->Y - arg1) < 0;
+			break;
+
+		case CPY_ABS:
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			arg1 = mem->data[(arg2 << 8) + arg1];
+			cpu->P.Z = cpu->Y == arg1;
+			cpu->P.C = cpu->Y >= arg1;
+			cpu->P.N = (cpu->Y - arg1) < 0;
 			break;
 
 		case STA_ABS:

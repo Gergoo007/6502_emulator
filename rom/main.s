@@ -2,11 +2,12 @@
 
 hello:
 	LDX #$10
-	BEQ test
 
 test:
 	LDA #$20
+	CMP #$20
 	BEQ hello
+	.byte 0x00
 
 	.org $fffc
 	.word test

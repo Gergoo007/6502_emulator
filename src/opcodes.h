@@ -92,6 +92,26 @@
 #define BVS		0x70
 
 //
+// COMPARE
+//
+#define CMP_IM 		0xc9
+#define CMP_ZP 		0xc5
+#define CMP_ZP_X 	0xd5
+#define CMP_ABS 	0xcd
+#define CMP_ABS_X 	0xdd
+#define CMP_ABS_Y 	0xd9
+#define CMP_IND_X 	0xc1
+#define CMP_IND_Y 	0xd1
+
+#define CPX_IM 		0xe0
+#define CPX_ZP 		0xe4
+#define CPX_ABS		0xec
+
+#define CPY_IM 		0xc0
+#define CPY_ZP 		0xc4
+#define CPY_ABS		0xcc
+
+//	
 //	MISCELLANEOUS
 //	
 #define NOP		0xea
