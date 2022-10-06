@@ -1,19 +1,13 @@
 	.org $8000
 
-subrout:
-	LDY #$64
-	RTS
+hello:
+	LDX #$10
+	BEQ test
 
 test:
-	LDA #$39
-	RTS
-
-hello:
 	LDA #$20
-	JSR test
-	LDX #$54
-	JSR subrout
+	BEQ hello
 
 	.org $fffc
-	.word hello
+	.word test
 	.word $0000

@@ -46,8 +46,8 @@ int main(void) {
 
 	cpu.reset(&mem);
 	
-	//cpu.exec_by_step(0x00aa, &mem);
-	cpu.exec_continous(&mem);
+	cpu.exec_by_step(0x00aa, &mem);
+	//cpu.exec_continous(&mem);
 
 	// Debug
 	printf("A: 0x%02x; X: 0x%02x; Y: 0x%02x\n", cpu.A, cpu.X, cpu.Y);

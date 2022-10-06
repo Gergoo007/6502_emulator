@@ -23,9 +23,9 @@ typedef struct CPU {
 	byte 	X, Y;			// Index
 
 	void (*reset) 			(Memory*);				// Reset the processor
-	void (*exec_by_cycles) 	(uint32_t, Memory*);	// Execute instruction
-	void (*exec_by_step) 	(uint32_t, Memory*);	// Execute instruction
-	void (*exec_continous) 	(Memory*);	// Execute instruction
+	void (*exec_by_cycles) 	(uint32_t, Memory*);	// Execute instruction by cycles
+	void (*exec_by_step) 	(uint32_t, Memory*);	// Execute instruction by steps
+	void (*exec_continous) 	(Memory*);				// Execute instruction until 0x00 is read
 	byte (*status_to_byte) 	(P_type);
 } CPU;
 

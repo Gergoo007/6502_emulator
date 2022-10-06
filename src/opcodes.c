@@ -131,7 +131,6 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		case PLA:
-			//cpu->SP--;
 			cpu->A = mem->pop(cpu->SP - 1);
 			cycles--;
 			break;
@@ -159,6 +158,110 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 		case INY:
 			cpu->Y++;
 			ldy_flagcheck();
+			break;
+
+		case BNE:
+			arg1 = mem->fetch(cycles);
+			if(!(cpu->P.Z)) {
+				if (arg1 <= 0x7f) {
+					cpu->PC = cpu->PC + arg1;
+				} else {
+					arg1 = 0xff - arg1;
+					cpu->PC -= arg1;
+					cpu->PC--;
+				}
+			}
+			break;
+
+		case BEQ:
+			arg1 = mem->fetch(cycles);
+			if(cpu->P.Z) {
+				if (arg1 <= 0x7f) {
+					cpu->PC = cpu->PC + arg1;
+				} else {
+					arg1 = 0xff - arg1;
+					cpu->PC -= arg1;
+					cpu->PC--;
+				}
+			}
+			break;
+
+		case BCS:
+			arg1 = mem->fetch(cycles);
+			if(cpu->P.C) {
+				if (arg1 <= 0x7f) {
+					cpu->PC = cpu->PC + arg1;
+				} else {
+					arg1 = 0xff - arg1;
+					cpu->PC -= arg1;
+					cpu->PC--;
+				}
+			}
+			break;
+
+		case BCC:
+			arg1 = mem->fetch(cycles);
+			if(!(cpu->P.C)) {
+				if (arg1 <= 0x7f) {
+					cpu->PC = cpu->PC + arg1;
+				} else {
+					arg1 = 0xff - arg1;
+					cpu->PC -= arg1;
+					cpu->PC--;
+				}
+			}
+			break;
+
+		case BVS:
+			arg1 = mem->fetch(cycles);
+			if(cpu->P.V) {
+				if (arg1 <= 0x7f) {
+					cpu->PC = cpu->PC + arg1;
+				} else {
+					arg1 = 0xff - arg1;
+					cpu->PC -= arg1;
+					cpu->PC--;
+				}
+			}
+			break;
+
+		case BVC:
+			arg1 = mem->fetch(cycles);
+			if(!(cpu->P.Z)) {
+				if (arg1 <= 0x7f) {
+					cpu->PC = cpu->PC + arg1;
+				} else {
+					arg1 = 0xff - arg1;
+					cpu->PC -= arg1;
+					cpu->PC--;
+				}
+			}
+			break;
+
+		case BPL:
+			arg1 = mem->fetch(cycles);
+			if(!(cpu->P.N)) {
+				if (arg1 <= 0x7f) {
+					cpu->PC = cpu->PC + arg1;
+				} else {
+					arg1 = 0xff - arg1;
+					cpu->PC -= arg1;
+					cpu->PC--;
+				}
+			}
+			break;
+
+		case BMI:
+			arg1 = mem->fetch(cycles);
+			if(cpu->P.N) {
+				if (arg1 <= 0x7f) {
+					cpu->PC = cpu->PC + arg1;
+				} else {
+					arg1 = 0xff - arg1;
+					cpu->PC -= arg1;
+					cpu->PC--;
+				}
+			}
 			break;
 
 		case STA_ABS:

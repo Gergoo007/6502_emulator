@@ -80,6 +80,18 @@
 #define RTS		0x60
 
 //
+// BRANCH
+//
+#define BEQ 	0xf0
+#define BNE 	0xd0
+#define BCC		0x90
+#define BCS		0xb0
+#define BPL		0x10
+#define BMI		0x30
+#define BVC		0x50
+#define BVS		0x70
+
+//
 //	MISCELLANEOUS
 //	
 #define NOP		0xea
