@@ -1,14 +1,18 @@
 	.org $8000
 
-hello:
-	LDX #$10
+irq:
+	LDA #$35
+	RTI
+
+nmi:
+	LDA #$32
+	RTI
 
 test:
-	LDA #$20
-	CMP #$20
-	BEQ hello
-	.byte 0x00
+	;LDA #$20
+	JMP test
 
-	.org $fffc
+	.org $fffa
+	.word nmi
 	.word test
-	.word $0000
+	.word irq

@@ -116,7 +116,9 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		case JMP_ABS:
-			cpu->PC = mem->fetch(cycles) + (mem->fetch(cycles) << 8) - 1;
+			arg1 = mem->fetch(cycles);
+			arg2 = mem->fetch(cycles);
+			cpu->PC = arg1 + (arg2 << 8);
 			break;
 
 		case JMP_IND:
@@ -148,6 +150,12 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 
 		case RTS:
 			cpu->PC = (mem->pop(cycles) << 8) + mem->pop(cycles);
+			break;
+
+		case RTI:
+			arg1 = mem->pop(cycles);
+			arg2 = mem->pop(cycles);
+			cpu->PC = arg2 + arg1 * 0x100;
 			break;
 
 		case INX:
@@ -460,7 +468,7 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		default:
-			printf("Illegal instruction: %02x\n", instruct);
+			printf("Illegal instruction: %02x! PC: %04x\n", instruct, cpu->PC);
 			break;
 	}
 }

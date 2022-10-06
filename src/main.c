@@ -46,7 +46,7 @@ int main(void) {
 
 	cpu.reset(&mem);
 	
-	cpu.exec_by_step(0x00aa, &mem);
+	cpu.exec_by_step(0x0004, &mem);
 	//cpu.exec_continous(&mem);
 
 	// Debug

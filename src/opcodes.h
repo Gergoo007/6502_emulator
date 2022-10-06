@@ -116,5 +116,6 @@
 //	
 #define NOP		0xea
 #define BRK		0x00
+#define RTI 	0x40
 
 extern void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles);
