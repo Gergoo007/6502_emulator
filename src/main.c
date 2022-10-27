@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "opcodes.h"
 #include "image_reader.h"
+#include "interface.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -37,7 +38,7 @@ void dump_mem() {
 }
 
 
-int main(void) {
+int main(int argc, char** argv) {
 	init_sim();
 
 	mem.init();
@@ -46,14 +47,20 @@ int main(void) {
 
 	cpu.reset(&mem);
 	
-	cpu.exec_by_step(0x0004, &mem);
+	//cpu.exec_by_step(0x0004, &mem);
 	//cpu.exec_continous(&mem);
 
 	// Debug
-	printf("A: 0x%02x; X: 0x%02x; Y: 0x%02x\n", cpu.A, cpu.X, cpu.Y);
-	printf("PC: 0x%04x; SP: 0x%02x\n", cpu.PC, cpu.SP);
+	//printf("A: 0x%02x; X: 0x%02x; Y: 0x%02x\n", cpu.A, cpu.X, cpu.Y);
+	//printf("PC: 0x%04x; SP: 0x%02x\n", cpu.PC, cpu.SP);
 
-	dump_stack();
+	//dump_stack();
+
+	
+
+	//printf("\nBuffer:\n%s", buffer);
+
+	open_gui(argc, argv, &cpu, &mem);
 
 	return 0;
 }

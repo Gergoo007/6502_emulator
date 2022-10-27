@@ -4,8 +4,11 @@ CSRC := $(call rwildcard, src, *.c)
 
 COBJ := $(patsubst src/%.c, out/%.c.o, $(CSRC))
 
-kernel: $(COBJ)
-	gcc $^ -g -o sim
+LIBS := $(shell pkg-config --libs gtk4)
+CFLAGS := $(shell pkg-config --cflags gtk4)
+
+emulator: $(COBJ)
+	gcc $^ $(LIBS) -g -o emu
 
 out/%.c.o: src/%.c
 	gcc $(CFLAGS) -g -c $^ -o $@
