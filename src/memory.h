@@ -12,6 +12,6 @@ typedef struct Memory {
 	byte (*pop) (uint32_t cycles);
 } Memory;
 
-extern Memory mem;
+extern Memory mem_glob;
 
 void emu_mem_init();

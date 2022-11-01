@@ -31,7 +31,7 @@ typedef struct CPU {
 	byte (*status_to_byte) 	(P_type);
 } CPU;
 
-extern CPU cpu;
+extern CPU cpu_glob;
 
 void emu_cpu_init();
 void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles);

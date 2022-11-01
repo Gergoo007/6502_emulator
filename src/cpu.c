@@ -3,10 +3,10 @@
 #include <stdio.h>
 
 void _reset_cpu(Memory* mem) {
-	cpu.PC = mem->data[0xfffd] * 0x100 + mem->data[0xfffc];
-	cpu.SP = 0xff;
-	cpu.X = cpu.Y = cpu.A = 0;
-	memset(&cpu.P, 0, sizeof(cpu.P));
+	cpu_glob.PC = mem->data[0xfffd] * 0x100 + mem->data[0xfffc];
+	cpu_glob.SP = 0xff;
+	cpu_glob.X = cpu_glob.Y = cpu_glob.A = 0;
+	memset(&cpu_glob.P, 0, sizeof(cpu_glob.P));
 }
 
 void _exec_cpu_step(uint32_t steps, Memory *mem) {
@@ -16,7 +16,7 @@ void _exec_cpu_step(uint32_t steps, Memory *mem) {
 		if(instruct == 0x00)
 			break;
 
-		execute(instruct, &cpu, mem, 0xff);
+		execute(instruct, &cpu_glob, mem, 0xff);
 		steps--;
 	}
 }
@@ -25,54 +25,54 @@ void _exec_cpu_cycle(uint32_t cycles, Memory *mem) {
 	while (cycles > 0) {
 		byte instruct = mem->fetch(cycles);
 
-		execute(instruct, &cpu, mem, cycles);
+		execute(instruct, &cpu_glob, mem, cycles);
 
 		cycles--;
 	}
 }
 
 void _exec_cpu_cont(Memory *mem) {
-	cpu.irq();
+	cpu_glob.irq();
 	while (1) {
 		byte instruct = mem->fetch(0xffff);
 		if(instruct == BRK)
 			break;
-		execute(instruct, &cpu, mem, 0xffff);
+		execute(instruct, &cpu_glob, mem, 0xffff);
 	}
 }
 
 void _nmi() {
-	mem.push((cpu.PC & 0x00ff), 0xff);
-	mem.push(cpu.PC >> 8, 0xff);
-	cpu.PC = (mem.data[0xfffb] << 8) + mem.data[0xfffa];
+	mem_glob.push((cpu_glob.PC & 0x00ff), 0xff);
+	mem_glob.push(cpu_glob.PC >> 8, 0xff);
+	cpu_glob.PC = (mem_glob.data[0xfffb] << 8) + mem_glob.data[0xfffa];
 }
 
 void _irq() {
-	mem.push((cpu.PC & 0x00ff), 0xff);
-	mem.push(cpu.PC >> 8, 0xff);
-	cpu.PC = (mem.data[0xffff] << 8) + mem.data[0xfffe];
+	mem_glob.push((cpu_glob.PC & 0x00ff), 0xff);
+	mem_glob.push(cpu_glob.PC >> 8, 0xff);
+	cpu_glob.PC = (mem_glob.data[0xffff] << 8) + mem_glob.data[0xfffe];
 }
 
 byte status_to_byte(P_type P) {
 	byte result = 0b00000000;
-	result |= cpu.P.C << 7;
-	result |= cpu.P.Z << 6;
-	result |= cpu.P.I << 5;
-	result |= cpu.P.D << 4;
-	result |= cpu.P.B << 3;
-	result |= cpu.P.U << 2;
-	result |= cpu.P.V << 1;
-	result |= cpu.P.N;
+	result |= cpu_glob.P.C << 7;
+	result |= cpu_glob.P.Z << 6;
+	result |= cpu_glob.P.I << 5;
+	result |= cpu_glob.P.D << 4;
+	result |= cpu_glob.P.B << 3;
+	result |= cpu_glob.P.U << 2;
+	result |= cpu_glob.P.V << 1;
+	result |= cpu_glob.P.N;
 
 	return result;
 }
 
 void emu_cpu_init() {
-	cpu.reset = _reset_cpu;
-	cpu.exec_by_cycles 	= _exec_cpu_cycle;
-	cpu.exec_by_step 	= _exec_cpu_step;
-	cpu.exec_continous 	= _exec_cpu_cont;
-	cpu.status_to_byte 	= status_to_byte;
-	cpu.nmi = _nmi;
-	cpu.irq = _irq;
+	cpu_glob.reset = _reset_cpu;
+	cpu_glob.exec_by_cycles 	= _exec_cpu_cycle;
+	cpu_glob.exec_by_step 	= _exec_cpu_step;
+	cpu_glob.exec_continous 	= _exec_cpu_cont;
+	cpu_glob.status_to_byte 	= status_to_byte;
+	cpu_glob.nmi = _nmi;
+	cpu_glob.irq = _irq;
 }

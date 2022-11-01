@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 
-CPU cpu;
-Memory mem;
+CPU cpu_glob;
+Memory mem_glob;
 
 void init_sim(void) { 
 	emu_cpu_init();
@@ -20,7 +20,7 @@ void dump_stack() {
 	for (uint32_t i = 0x100; i < 0x200; i += 16) {
 		printf("0x%04x: ", i);
 		for (uint32_t j = 0; j < 16; j++) {
-			printf("0x%02x ", mem.data[i + j]);
+			printf("0x%02x ", mem_glob.data[i + j]);
 		}
 		printf("\n");
 	}
@@ -31,7 +31,7 @@ void dump_mem() {
 	for (uint32_t i = 0x0; i < 0x0100; i += 16) {
 		printf("0x%04x: ", i);
 		for (uint32_t j = 0; j < 16; j++) {
-			printf("0x%02x ", mem.data[i + j]);
+			printf("0x%02x ", mem_glob.data[i + j]);
 		}
 		printf("\n");
 	}
@@ -41,11 +41,11 @@ void dump_mem() {
 int main(int argc, char** argv) {
 	init_sim();
 
-	mem.init();
+	mem_glob.init();
 
-	read_image(&mem);
+	read_image(&mem_glob);
 
-	cpu.reset(&mem);
+	cpu_glob.reset(&mem_glob);
 	
 	//cpu.exec_by_step(0x0004, &mem);
 	//cpu.exec_continous(&mem);
@@ -56,11 +56,9 @@ int main(int argc, char** argv) {
 
 	//dump_stack();
 
-	
-
 	//printf("\nBuffer:\n%s", buffer);
 
-	open_gui(argc, argv, &cpu, &mem);
+	open_gui(argc, argv, &cpu_glob, &mem_glob);
 
 	return 0;
 }

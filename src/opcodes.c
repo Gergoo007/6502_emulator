@@ -8,47 +8,46 @@ void dump_stackk() {
 	for (uint32_t i = 0x100; i < 0x200; i += 16) {
 		printf("0x%04x: ", i);
 		for (uint32_t j = 0; j < 16; j++) {
-			printf("0x%02x ", mem.data[i + j]);
+			printf("0x%02x ", mem_glob.data[i + j]);
 		}
 		printf("\n");
 	}
 }
 
-
 void lda_flagcheck() {
-	if(cpu.A == 0)
-		cpu.P.Z = 1;
+	if(cpu_glob.A == 0)
+		cpu_glob.P.Z = 1;
 	else
-		cpu.P.Z = 0;
+		cpu_glob.P.Z = 0;
 	
-	if((cpu.A & 0b10000000) > 0)
-		cpu.P.N = 1;
+	if((cpu_glob.A & 0b10000000) > 0)
+		cpu_glob.P.N = 1;
 	else
-		cpu.P.N = 0;
+		cpu_glob.P.N = 0;
 }
 
 void ldx_flagcheck() {
-	if(cpu.X == 0)
-		cpu.P.Z = 1;
+	if(cpu_glob.X == 0)
+		cpu_glob.P.Z = 1;
 	else
-		cpu.P.Z = 0;
+		cpu_glob.P.Z = 0;
 
-	if((cpu.A & 0b10000000) > 0)
-		cpu.P.N = 1;
+	if((cpu_glob.A & 0b10000000) > 0)
+		cpu_glob.P.N = 1;
 	else
-		cpu.P.N = 0;
+		cpu_glob.P.N = 0;
 }
 
 void ldy_flagcheck() {
-	if(cpu.Y == 0)
-		cpu.P.Z = 1;
+	if(cpu_glob.Y == 0)
+		cpu_glob.P.Z = 1;
 	else
-		cpu.P.Z = 0;
+		cpu_glob.P.Z = 0;
 
-	if((cpu.Y & 0b10000000) > 0)
-		cpu.P.N = 1;
+	if((cpu_glob.Y & 0b10000000) > 0)
+		cpu_glob.P.N = 1;
 	else
-		cpu.P.N = 0;
+		cpu_glob.P.N = 0;
 }
 
 void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
