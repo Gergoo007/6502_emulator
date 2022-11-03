@@ -115,7 +115,7 @@
 					<child>
 						<object id="right_pane" class="GtkPaned">
 							<property name="orientation">vertical</property>
-							<property name="position">500</property>
+							<property name="position">1000</property>
 							<child>
 								<object class="GtkScrolledWindow">
 									<child>

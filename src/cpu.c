@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <time.h>
 
+extern uint8_t kill_emu_thread;
+
 void _reset_cpu(Memory* mem) {
 	cpu_glob.PC = mem->data[0xfffd] * 0x100 + mem->data[0xfffc];
 	cpu_glob.SP = 0xff;
@@ -40,6 +42,9 @@ void _exec_cpu_cont(Memory *mem) {
 	ts.tv_nsec = 50 /* milliseconds */ * 1000000;
 
 	while (1) {
+		if(kill_emu_thread)
+			return;
+
 		byte instruct = mem->fetch(0xffff);
 		if(instruct == BRK)
 			break;

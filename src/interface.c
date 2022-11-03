@@ -18,6 +18,8 @@
 
 #define FB_SIZE 64 * 8
 
+uint8_t kill_emu_thread = 0;
+
 char ram_buffer[(0x8000 * 55) + 1], rom_buffer[(0x8000 * 55) + 1];
 
 typedef struct emulator_gui {
@@ -30,6 +32,7 @@ typedef struct emulator_gui {
 
 	GtkButton* btn_run;
 	GtkButton* btn_step;
+	GtkButton* btn_stop;
 
 	GtkTextView* code;
 	GtkTextView* ram;
@@ -73,14 +76,14 @@ void parse_ram(Memory* mem) {
 		ram_buffer[i] = 0;
 	}
 
-	for (uint32_t i = 0; i < 0x8000; i++) {
+	for (uint32_t i = 0; i < 0x8000; i += 16) {
 		char line[255];
 		
 		sprintf(line, "%04x: ", i);
 
 		for (uint8_t j = 0; j < 16; j++) {
 			char tmp[5];
-			sprintf(tmp, "%02x ", j);
+			sprintf(tmp, "%02x ", mem_glob.data[i + j]);
 			strcat(line, tmp);
 		}
 
@@ -99,14 +102,14 @@ void parse_rom(Memory* mem) {
 		rom_buffer[i] = 0;
 	}
 
-	for (uint32_t i = 0; i < 0x8000; i++) {
+	for (uint32_t i = 0x8000; i < 0x10000; i += 16) {
 		char line[255];
 		
 		sprintf(line, "%04x: ", i);
 
 		for (uint8_t j = 0; j < 16; j++) {
 			char tmp[5];
-			sprintf(tmp, "%02x ", j);
+			sprintf(tmp, "%02x ", mem_glob.data[i + j]);
 			strcat(line, tmp);
 		}
 
@@ -117,18 +120,30 @@ void parse_rom(Memory* mem) {
 }
 
 void* launch(void* data) {
-	g_print("Hello, world! %x\n", 0x00);
 	cpu_glob.exec_continous(&mem_glob);
-	g_print("Hello, world! %x\n", 0x00);
 
 	pthread_exit(NULL);
 }
 
+pthread_t id;
+
 static void run_btn_clicked(GtkWidget* widget, gpointer data) {
-	pthread_t id;
+	kill_emu_thread = 0;
+
 	pthread_create(&id, NULL, launch, NULL);
 	//pthread_join(id, NULL);
-	g_print("Hello, world! %x\n", 0x02);
+	
+	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_run), FALSE);
+	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_step), FALSE);
+	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_stop), TRUE);
+}
+
+static void stop_btn_clicked(GtkWidget* widget, gpointer data) {
+	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_run), TRUE);
+	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_step), TRUE);
+	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_stop), FALSE);
+
+	kill_emu_thread = 1;
 }
 
 static void step_btn_clicked(GtkWidget* widget, gpointer cpu) {
@@ -223,8 +238,13 @@ static void activate(GApplication* app, gpointer cpu) {
 
 	GObject* run_btn = gtk_builder_get_object(builder, "run_btn");
 	g_signal_connect(run_btn, "clicked", G_CALLBACK(run_btn_clicked), cpu);
+
 	GObject* step_btn = gtk_builder_get_object(builder, "step_btn");
 	g_signal_connect(step_btn, "clicked", G_CALLBACK(step_btn_clicked), cpu);
+
+	GObject* stop_btn = gtk_builder_get_object(builder, "stop_btn");
+	g_signal_connect(stop_btn, "clicked", G_CALLBACK(stop_btn_clicked), cpu);
+	gtk_widget_set_sensitive(GTK_WIDGET(stop_btn), FALSE);
 
 	// Create register labels
 	GObject* a_reg_label 	= gtk_builder_get_object(builder, "a_reg_lab");
@@ -235,6 +255,7 @@ static void activate(GApplication* app, gpointer cpu) {
 	
 	// Fill the GUI struct
 	gui_struct.btn_step = GTK_BUTTON(step_btn);
+	gui_struct.btn_stop = GTK_BUTTON(stop_btn);
 	gui_struct.btn_run 	= GTK_BUTTON(run_btn);
 	gui_struct.A 		= GTK_LABEL(a_reg_label);
 	gui_struct.X 		= GTK_LABEL(x_reg_label);
