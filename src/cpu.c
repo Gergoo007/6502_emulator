@@ -1,6 +1,8 @@
 #include "cpu.h"
 #include "opcodes.h"
+#include "interface.h"
 #include <stdio.h>
+#include <time.h>
 
 void _reset_cpu(Memory* mem) {
 	cpu_glob.PC = mem->data[0xfffd] * 0x100 + mem->data[0xfffc];
@@ -17,6 +19,7 @@ void _exec_cpu_step(uint32_t steps, Memory *mem) {
 			break;
 
 		execute(instruct, &cpu_glob, mem, 0xff);
+		on_step();
 		steps--;
 	}
 }
@@ -32,11 +35,18 @@ void _exec_cpu_cycle(uint32_t cycles, Memory *mem) {
 }
 
 void _exec_cpu_cont(Memory *mem) {
-	cpu_glob.irq();
+	struct timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_nsec = 50 /* milliseconds */ * 1000000;
+
 	while (1) {
 		byte instruct = mem->fetch(0xffff);
 		if(instruct == BRK)
 			break;
+
+		nanosleep(&ts, &ts);
+
+		on_step();
 		execute(instruct, &cpu_glob, mem, 0xffff);
 	}
 }

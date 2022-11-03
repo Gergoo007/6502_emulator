@@ -158,12 +158,18 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		case INX:
-			cpu->X++;
+			if(cpu->X == 0xff)
+				cpu->X = 0;
+			else
+				cpu->X++;
 			ldx_flagcheck();
 			break;
 
 		case INY:
-			cpu->Y++;
+			if(cpu->Y == 0xff)
+				cpu->Y = 0;
+			else
+				cpu->Y++;
 			ldy_flagcheck();
 			break;
 

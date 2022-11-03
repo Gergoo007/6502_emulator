@@ -5,15 +5,38 @@
 
 #include <gio/gio.h>
 #include <gtk/gtk.h>
+#include <pthread.h>
 #include <stdio.h>
+ 
+#include <epoxy/gl.h>
 
 #include <string.h>
 
 //#define APPLICATION_ID "me.gergoo007.6502emu"
 
+#include "../gresources/gresource.h"
+
 #define FB_SIZE 64 * 8
 
 char ram_buffer[(0x8000 * 55) + 1], rom_buffer[(0x8000 * 55) + 1];
+
+typedef struct emulator_gui {
+	GtkLabel* A;
+	GtkLabel* X;
+	GtkLabel* Y;
+	GtkLabel* PC;
+	GtkLabel* P;
+	GtkLabel* cycles;
+
+	GtkButton* btn_run;
+	GtkButton* btn_step;
+
+	GtkTextView* code;
+	GtkTextView* ram;
+	GtkTextView* rom;
+} emulator_gui;
+
+emulator_gui gui_struct;
 
 void exit_app(GtkApplication* app, gpointer data) {
 	gtk_window_destroy(GTK_WINDOW(data));
@@ -93,9 +116,19 @@ void parse_rom(Memory* mem) {
 	}
 }
 
-static void run_btn_clicked(GtkWidget* widget, gpointer data) {
-	//cpu_glob.exec_continous(&mem_glob);
+void* launch(void* data) {
 	g_print("Hello, world! %x\n", 0x00);
+	cpu_glob.exec_continous(&mem_glob);
+	g_print("Hello, world! %x\n", 0x00);
+
+	pthread_exit(NULL);
+}
+
+static void run_btn_clicked(GtkWidget* widget, gpointer data) {
+	pthread_t id;
+	pthread_create(&id, NULL, launch, NULL);
+	//pthread_join(id, NULL);
+	g_print("Hello, world! %x\n", 0x02);
 }
 
 static void step_btn_clicked(GtkWidget* widget, gpointer cpu) {
@@ -103,13 +136,64 @@ static void step_btn_clicked(GtkWidget* widget, gpointer cpu) {
 	g_print("step!\n");
 }
 
+void on_step() {
+	char text[255];
+
+	sprintf(text, "A: 0x%02x ", cpu_glob.A);
+	gtk_label_set_text(GTK_LABEL(gui_struct.A), text);
+
+	sprintf(text, "X: 0x%02x ", cpu_glob.X);
+	gtk_label_set_text(GTK_LABEL(gui_struct.X), text);
+
+	sprintf(text, "Y: 0x%02x ", cpu_glob.Y);
+	gtk_label_set_text(GTK_LABEL(gui_struct.Y), text);
+
+	sprintf(text, "PC: 0x%04x ", cpu_glob.PC);
+	gtk_label_set_text(GTK_LABEL(gui_struct.PC), text);
+
+	//sprintf(text, "P: 0b%x", cpu_glob.P.B);
+	sprintf(text, "P: 0b00100000");
+	gtk_label_set_text(GTK_LABEL(gui_struct.P), text);
+}
+
+uint8_t framebuffer[64][64];
+
+// 16 colors: each pixel occupies 4 bits
+// 1 byte will be 2 pixels
+static gboolean render(GtkGLArea *area, GdkGLContext *context) {
+	framebuffer[10][10] = 10;
+	framebuffer[10][11] = 10;
+	framebuffer[10][12] = 10;
+
+	/*glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(100, 200, 8, 8);
+	glClearColor(1, 1, 1, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	// Remember to disable scissor test, or, perhaps reset the scissor rectangle:
+	glDisable(GL_SCISSOR_TEST); */
+
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	for (uint16_t i = 0; i < 64 * 64; i++) {
+		
+	}
+	
+	return TRUE;
+}
+
 static void activate(GApplication* app, gpointer cpu) {
-	GtkBuilder* builder = gtk_builder_new();
-	gtk_builder_add_from_file(builder, "/home/gergoo007/.local/share/6502/gui.ui", NULL);
+	GResource* resources = gresource_get_resource();
+
+	GtkBuilder* builder = gtk_builder_new_from_resource("/me/gergoo007/emu/main.ui");
+	//gtk_builder_add_from_file(builder, "/home/gergoo007/.local/share/6502/gui.ui", NULL);
 
 	GtkCssProvider* css = gtk_css_provider_new();
-	gtk_css_provider_load_from_path(GTK_CSS_PROVIDER(css), 
-		"/home/gergoo007/.local/share/6502/default.css");
+	gtk_css_provider_load_from_resource(GTK_CSS_PROVIDER(css), 
+		"/me/gergoo007/emu/main.css");
 	
 	gtk_style_context_add_provider_for_display(gdk_display_get_default(), 
 		GTK_STYLE_PROVIDER(css), 1);
@@ -118,8 +202,8 @@ static void activate(GApplication* app, gpointer cpu) {
 	gtk_window_set_application(GTK_WINDOW(window), GTK_APPLICATION(app));
 
 	GObject* framebuffer = gtk_builder_get_object(builder, "framebuffer");
-	gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(framebuffer), 
-		drawFB, NULL, NULL);
+	gtk_widget_set_size_request(GTK_WIDGET(framebuffer), 64 * 8, 64 * 8);
+	g_signal_connect(framebuffer, "render", G_CALLBACK(render), NULL);
 
 	// Fill the ROM and RAM windows
 
@@ -135,10 +219,31 @@ static void activate(GApplication* app, gpointer cpu) {
 	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(ram_buff), ram_buffer, -1);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(ram), GTK_TEXT_BUFFER(ram_buff));
 	
+	GObject* code = gtk_builder_get_object(builder, "code");
+
 	GObject* run_btn = gtk_builder_get_object(builder, "run_btn");
 	g_signal_connect(run_btn, "clicked", G_CALLBACK(run_btn_clicked), cpu);
 	GObject* step_btn = gtk_builder_get_object(builder, "step_btn");
 	g_signal_connect(step_btn, "clicked", G_CALLBACK(step_btn_clicked), cpu);
+
+	// Create register labels
+	GObject* a_reg_label 	= gtk_builder_get_object(builder, "a_reg_lab");
+	GObject* x_reg_label 	= gtk_builder_get_object(builder, "x_reg_lab");
+	GObject* y_reg_label 	= gtk_builder_get_object(builder, "y_reg_lab");
+	GObject* pc_reg_label 	= gtk_builder_get_object(builder, "pc_reg_lab");
+	GObject* p_reg_label 	= gtk_builder_get_object(builder, "p_reg_lab");
+	
+	// Fill the GUI struct
+	gui_struct.btn_step = GTK_BUTTON(step_btn);
+	gui_struct.btn_run 	= GTK_BUTTON(run_btn);
+	gui_struct.A 		= GTK_LABEL(a_reg_label);
+	gui_struct.X 		= GTK_LABEL(x_reg_label);
+	gui_struct.Y 		= GTK_LABEL(y_reg_label);
+	gui_struct.PC 		= GTK_LABEL(pc_reg_label);
+	gui_struct.P 		= GTK_LABEL(p_reg_label);
+	gui_struct.code 	= GTK_TEXT_VIEW(code);
+	gui_struct.ram 		= GTK_TEXT_VIEW(ram);
+	gui_struct.rom 		= GTK_TEXT_VIEW(rom);
 
 	gtk_widget_show(GTK_WIDGET(window));
 

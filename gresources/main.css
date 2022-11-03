@@ -1,0 +1,13 @@
+.class {
+	background-color: black;
+}
+
+label#header_label {
+	font-size: 1.3rem;
+	font-family: monospace;
+}
+
+textview {
+	font-size: 1.2rem;
+	font-family: monospace;
+}

@@ -9,7 +9,7 @@ nmi:
 	RTI
 
 test:
-	;LDA #$20
+	INX
 	JMP test
 
 	.org $fffa
