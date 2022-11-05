@@ -22,6 +22,8 @@ uint8_t kill_emu_thread = 0;
 
 char ram_buffer[(0x8000 * 55) + 1], rom_buffer[(0x8000 * 55) + 1];
 
+pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+
 typedef struct emulator_gui {
 	GtkLabel* A;
 	GtkLabel* X;
@@ -37,32 +39,14 @@ typedef struct emulator_gui {
 	GtkTextView* code;
 	GtkTextView* ram;
 	GtkTextView* rom;
+
+	GtkGLArea* framebuffer;
 } emulator_gui;
 
 emulator_gui gui_struct;
 
 void exit_app(GtkApplication* app, gpointer data) {
 	gtk_window_destroy(GTK_WINDOW(data));
-}
-
-static void drawFB(GtkDrawingArea* fb, cairo_t* cr, int width, int height, gpointer data) {
-	GdkRGBA color;
-	gdk_rgba_parse(&color, "#000000");
-	GtkStyleContext* context;
-
-	context = gtk_widget_get_style_context(GTK_WIDGET(fb));
-
-	//cairo_rectangle(cr, 0, 0, width, height);
-	cairo_arc(cr, (double) width / 2, (double) height / 2, 60, 0, 4.5);
-
-	cairo_rectangle(cr, 0, 0, width, height);
-
-	printf("\n%d x %d\n", width, height);
-
-	//gtk_style_context_get_color (context, &color);
-	gdk_cairo_set_source_rgba (cr, &color);
-
-	cairo_fill (cr);
 }
 
 //	RAM inside mem[] stretches from 0x0000 to 0x7fff;
@@ -148,10 +132,9 @@ static void stop_btn_clicked(GtkWidget* widget, gpointer data) {
 
 static void step_btn_clicked(GtkWidget* widget, gpointer cpu) {
 	cpu_glob.exec_by_step(1, &mem_glob);
-	g_print("step!\n");
 }
 
-void on_step() {
+void update_display() {
 	char text[255];
 
 	sprintf(text, "A: 0x%02x ", cpu_glob.A);
@@ -169,34 +152,52 @@ void on_step() {
 	//sprintf(text, "P: 0b%x", cpu_glob.P.B);
 	sprintf(text, "P: 0b00100000");
 	gtk_label_set_text(GTK_LABEL(gui_struct.P), text);
+
+	gtk_gl_area_queue_render(gui_struct.framebuffer);
+
+	GtkTextBuffer* rom_buff = gtk_text_buffer_new(NULL);
+	parse_rom(&mem_glob);
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(rom_buff), rom_buffer, -1);
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(gui_struct.rom), GTK_TEXT_BUFFER(rom_buff));
+
+	GtkTextBuffer* ram_buff = gtk_text_buffer_new(NULL);
+	parse_ram(&mem_glob);
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(ram_buff), ram_buffer, -1);
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(gui_struct.ram), GTK_TEXT_BUFFER(ram_buff));
 }
 
-uint8_t framebuffer[64][64];
-
-// 16 colors: each pixel occupies 4 bits
-// 1 byte will be 2 pixels
+// 256 colors: each pixel occupies 8 bits
+// 1 byte will be 1 pixel
 static gboolean render(GtkGLArea *area, GdkGLContext *context) {
-	framebuffer[10][10] = 10;
-	framebuffer[10][11] = 10;
-	framebuffer[10][12] = 10;
+	byte framebuffer[64][64];
+	memcpy(framebuffer, &(mem_glob.data[0x2000]), 64*64);
 
-	/*glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	glEnable(GL_SCISSOR_TEST);
-	glScissor(100, 200, 8, 8);
-	glClearColor(1, 1, 1, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
-	// Remember to disable scissor test, or, perhaps reset the scissor rectangle:
-	glDisable(GL_SCISSOR_TEST); */
+	mem_glob.data[0x2005] = 0xff;
+
+	typedef struct {
+		byte b : 2;
+		byte g : 3;
+		byte r : 3;
+	} pixel; // 8 bits or 1 byte
 
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	for (uint16_t i = 0; i < 64 * 64; i++) {
-		
+	glEnable(GL_SCISSOR_TEST);
+	for (uint16_t x = 0; x < 64; x++) {		// row (x)
+		for (uint16_t y = 0; y < 64; y++) {	// column (y)
+			pixel _pixel;
+			memcpy(&_pixel, &(framebuffer[y][x]), 1);
+			
+			glScissor(x * 8, (63 - y) * 8, 8, 8);
+
+			glClearColor((float) _pixel.r / 8, (float) _pixel.g / 8, (float) _pixel.b / 4, 1);
+			glClear(GL_COLOR_BUFFER_BIT);
+			// Remember to disable scissor test, or, perhaps reset the scissor rectangle:
+		}
 	}
-	
+	glDisable(GL_SCISSOR_TEST);
+
 	return TRUE;
 }
 
@@ -221,18 +222,11 @@ static void activate(GApplication* app, gpointer cpu) {
 	g_signal_connect(framebuffer, "render", G_CALLBACK(render), NULL);
 
 	// Fill the ROM and RAM windows
-
 	GObject* rom = gtk_builder_get_object(builder, "rom");
-	GtkTextBuffer* rom_buff = gtk_text_buffer_new(NULL);
-	parse_rom(&mem_glob);
-	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(rom_buff), rom_buffer, -1);
-	gtk_text_view_set_buffer(GTK_TEXT_VIEW(rom), GTK_TEXT_BUFFER(rom_buff));
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(rom), FALSE);
 
 	GObject* ram = gtk_builder_get_object(builder, "ram");
-	GtkTextBuffer* ram_buff = gtk_text_buffer_new(NULL);
-	parse_ram(&mem_glob);
-	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(ram_buff), ram_buffer, -1);
-	gtk_text_view_set_buffer(GTK_TEXT_VIEW(ram), GTK_TEXT_BUFFER(ram_buff));
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(ram), TRUE);
 	
 	GObject* code = gtk_builder_get_object(builder, "code");
 
@@ -252,7 +246,7 @@ static void activate(GApplication* app, gpointer cpu) {
 	GObject* y_reg_label 	= gtk_builder_get_object(builder, "y_reg_lab");
 	GObject* pc_reg_label 	= gtk_builder_get_object(builder, "pc_reg_lab");
 	GObject* p_reg_label 	= gtk_builder_get_object(builder, "p_reg_lab");
-	
+
 	// Fill the GUI struct
 	gui_struct.btn_step = GTK_BUTTON(step_btn);
 	gui_struct.btn_stop = GTK_BUTTON(stop_btn);
@@ -265,6 +259,9 @@ static void activate(GApplication* app, gpointer cpu) {
 	gui_struct.code 	= GTK_TEXT_VIEW(code);
 	gui_struct.ram 		= GTK_TEXT_VIEW(ram);
 	gui_struct.rom 		= GTK_TEXT_VIEW(rom);
+	gui_struct.framebuffer = GTK_GL_AREA(framebuffer);
+
+	update_display();
 
 	gtk_widget_show(GTK_WIDGET(window));
 

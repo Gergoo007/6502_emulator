@@ -54,7 +54,7 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 	byte arg1, arg2, arg3;
 	switch (instruct) {
 		case BRK:
-			cycles -= 2;
+			return;
 			break;
 
 		case NOP:
@@ -425,7 +425,7 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 			break;
 
 		case STX_ABS:
-			mem->data[(mem->fetch(cycles) << 8) + mem->fetch(cycles)] = cpu->X;
+			mem->data[mem->fetchw()] = cpu->X;
 			break;
 
 		case STX_ZP:
@@ -470,6 +470,38 @@ void execute(byte instruct, CPU *cpu, Memory *mem, uint32_t cycles) {
 
 		case TSX:
 			cpu->SP = cpu->X;
+			break;
+
+		case INC_ABS:
+			mem->data[mem->fetchw()]++;
+			break;
+
+		case INC_ABS_X:
+			mem->data[mem->fetchw() + cpu->X]++;
+			break;
+
+		case INC_ZP:
+			mem->data[mem->fetch(cycles)]++;
+			break;
+
+		case INC_ZP_X:
+			mem->data[mem->fetch(cycles) + cpu->X]++;
+			break;
+
+		case DEC_ABS:
+			mem->data[mem->fetchw()]--;
+			break;
+
+		case DEC_ABS_X:
+			mem->data[mem->fetchw() + cpu->X]--;
+			break;
+
+		case DEC_ZP:
+			mem->data[mem->fetch(cycles)]--;
+			break;
+
+		case DEC_ZP_X:
+			mem->data[mem->fetch(cycles) + cpu->X]--;
 			break;
 
 		default:

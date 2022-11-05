@@ -6,6 +6,10 @@ byte _fetch_mem(uint32_t cycles) {
 	return mem_glob.data[(cpu_glob.PC)++];
 }
 
+word _fetch_mem_word() {
+	return mem_glob.data[cpu_glob.PC++] + mem_glob.data[cpu_glob.PC++] * 0x0100;
+}
+
 void _init_mem(void) {
 	for (uint32_t i = 0; i < MAX_MEM; i++) {
 		mem_glob.data[i] = 0x00;
@@ -28,6 +32,7 @@ byte pop(uint32_t cycles) {
 
 void emu_mem_init() {
 	mem_glob.fetch = _fetch_mem;
+	mem_glob.fetchw = _fetch_mem_word;
 	mem_glob.init = _init_mem;
 	mem_glob.push = push;
 	mem_glob.pop = pop;

@@ -9,7 +9,10 @@ nmi:
 	RTI
 
 test:
+	INC $10
+	LDA $10
 	INX
+	STA $2000,X
 	JMP test
 
 	.org $fffa
