@@ -1,7 +1,6 @@
 #include "cpu.h"
 #include "memory.h"
 #include "opcodes.h"
-#include "image_reader.h"
 #include "interface.h"
 
 #include <stdio.h>
@@ -42,8 +41,6 @@ int main(int argc, char** argv) {
 	init_sim();
 
 	mem_glob.init();
-
-	read_image(&mem_glob);
 
 	cpu_glob.reset(&mem_glob);
 	

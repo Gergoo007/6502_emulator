@@ -73,6 +73,11 @@
 									<property name="label">Step!</property>
 								</object>
 							</child>
+							<child>
+								<object id="reset_btn" class="GtkButton">
+									<property name="label">Reset!</property>
+								</object>
+							</child>
 						</object>
 					</child>
 				</object>
@@ -115,7 +120,7 @@
 					<child>
 						<object id="right_pane" class="GtkPaned">
 							<property name="orientation">vertical</property>
-							<property name="position">1000</property>
+							<property name="position">450</property>
 							<child>
 								<object class="GtkScrolledWindow">
 									<child>

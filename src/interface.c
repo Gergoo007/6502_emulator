@@ -5,7 +5,6 @@
 
 #include <gio/gio.h>
 #include <gtk/gtk.h>
-#include <pthread.h>
 #include <stdio.h>
  
 #include <epoxy/gl.h>
@@ -18,11 +17,9 @@
 
 #define FB_SIZE 64 * 8
 
-uint8_t kill_emu_thread = 0;
+uint8_t kill_emu_thread = 1;
 
 char ram_buffer[(0x8000 * 55) + 1], rom_buffer[(0x8000 * 55) + 1];
-
-pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct emulator_gui {
 	GtkLabel* A;
@@ -103,19 +100,15 @@ void parse_rom(Memory* mem) {
 	}
 }
 
-void* launch(void* data) {
-	cpu_glob.exec_continous(&mem_glob);
-
-	pthread_exit(NULL);
+gboolean run_emu() {
+	if(!kill_emu_thread)
+		cpu_glob.exec_by_step(2, &mem_glob);
+	
+	return TRUE;
 }
-
-pthread_t id;
 
 static void run_btn_clicked(GtkWidget* widget, gpointer data) {
 	kill_emu_thread = 0;
-
-	pthread_create(&id, NULL, launch, NULL);
-	//pthread_join(id, NULL);
 	
 	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_run), FALSE);
 	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_step), FALSE);
@@ -130,8 +123,13 @@ static void stop_btn_clicked(GtkWidget* widget, gpointer data) {
 	kill_emu_thread = 1;
 }
 
-static void step_btn_clicked(GtkWidget* widget, gpointer cpu) {
+static void step_btn_clicked(GtkWidget* widget, gpointer data) {
 	cpu_glob.exec_by_step(1, &mem_glob);
+}
+
+static void reset_btn_clicked(GtkWidget* widget, gpointer data) {
+	cpu_glob.reset(&mem_glob);
+	update_display();
 }
 
 void update_display() {
@@ -149,7 +147,6 @@ void update_display() {
 	sprintf(text, "PC: 0x%04x ", cpu_glob.PC);
 	gtk_label_set_text(GTK_LABEL(gui_struct.PC), text);
 
-	//sprintf(text, "P: 0b%x", cpu_glob.P.B);
 	sprintf(text, "P: 0b00100000");
 	gtk_label_set_text(GTK_LABEL(gui_struct.P), text);
 
@@ -171,8 +168,6 @@ void update_display() {
 static gboolean render(GtkGLArea *area, GdkGLContext *context) {
 	byte framebuffer[64][64];
 	memcpy(framebuffer, &(mem_glob.data[0x2000]), 64*64);
-
-	mem_glob.data[0x2005] = 0xff;
 
 	typedef struct {
 		byte b : 2;
@@ -216,6 +211,7 @@ static void activate(GApplication* app, gpointer cpu) {
 
 	GObject* window = gtk_builder_get_object(builder, "window");
 	gtk_window_set_application(GTK_WINDOW(window), GTK_APPLICATION(app));
+	gtk_widget_add_tick_callback(GTK_WIDGET(window), run_emu, NULL, NULL);
 
 	GObject* framebuffer = gtk_builder_get_object(builder, "framebuffer");
 	gtk_widget_set_size_request(GTK_WIDGET(framebuffer), 64 * 8, 64 * 8);
@@ -231,13 +227,16 @@ static void activate(GApplication* app, gpointer cpu) {
 	GObject* code = gtk_builder_get_object(builder, "code");
 
 	GObject* run_btn = gtk_builder_get_object(builder, "run_btn");
-	g_signal_connect(run_btn, "clicked", G_CALLBACK(run_btn_clicked), cpu);
+	g_signal_connect(run_btn, "clicked", G_CALLBACK(run_btn_clicked), NULL);
 
 	GObject* step_btn = gtk_builder_get_object(builder, "step_btn");
-	g_signal_connect(step_btn, "clicked", G_CALLBACK(step_btn_clicked), cpu);
+	g_signal_connect(step_btn, "clicked", G_CALLBACK(step_btn_clicked), NULL);
+
+	GObject* reset_btn = gtk_builder_get_object(builder, "reset_btn");
+	g_signal_connect(reset_btn, "clicked", G_CALLBACK(reset_btn_clicked), NULL);
 
 	GObject* stop_btn = gtk_builder_get_object(builder, "stop_btn");
-	g_signal_connect(stop_btn, "clicked", G_CALLBACK(stop_btn_clicked), cpu);
+	g_signal_connect(stop_btn, "clicked", G_CALLBACK(stop_btn_clicked), NULL);
 	gtk_widget_set_sensitive(GTK_WIDGET(stop_btn), FALSE);
 
 	// Create register labels
@@ -248,18 +247,18 @@ static void activate(GApplication* app, gpointer cpu) {
 	GObject* p_reg_label 	= gtk_builder_get_object(builder, "p_reg_lab");
 
 	// Fill the GUI struct
-	gui_struct.btn_step = GTK_BUTTON(step_btn);
-	gui_struct.btn_stop = GTK_BUTTON(stop_btn);
-	gui_struct.btn_run 	= GTK_BUTTON(run_btn);
-	gui_struct.A 		= GTK_LABEL(a_reg_label);
-	gui_struct.X 		= GTK_LABEL(x_reg_label);
-	gui_struct.Y 		= GTK_LABEL(y_reg_label);
-	gui_struct.PC 		= GTK_LABEL(pc_reg_label);
-	gui_struct.P 		= GTK_LABEL(p_reg_label);
-	gui_struct.code 	= GTK_TEXT_VIEW(code);
-	gui_struct.ram 		= GTK_TEXT_VIEW(ram);
-	gui_struct.rom 		= GTK_TEXT_VIEW(rom);
-	gui_struct.framebuffer = GTK_GL_AREA(framebuffer);
+	gui_struct.btn_step 	= GTK_BUTTON(step_btn);
+	gui_struct.btn_stop 	= GTK_BUTTON(stop_btn);
+	gui_struct.btn_run 		= GTK_BUTTON(run_btn);
+	gui_struct.A 			= GTK_LABEL(a_reg_label);
+	gui_struct.X 			= GTK_LABEL(x_reg_label);
+	gui_struct.Y 			= GTK_LABEL(y_reg_label);
+	gui_struct.PC 			= GTK_LABEL(pc_reg_label);
+	gui_struct.P 			= GTK_LABEL(p_reg_label);
+	gui_struct.code 		= GTK_TEXT_VIEW(code);
+	gui_struct.ram 			= GTK_TEXT_VIEW(ram);
+	gui_struct.rom 			= GTK_TEXT_VIEW(rom);
+	gui_struct.framebuffer 	= GTK_GL_AREA(framebuffer);
 
 	update_display();
 

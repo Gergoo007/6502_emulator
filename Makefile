@@ -7,6 +7,8 @@ COBJ := $(patsubst src/%.c, out/%.c.o, $(CSRC)) out/gresource.c.o
 LIBS := $(shell pkg-config --libs gtk4) -lepoxy 
 CFLAGS := $(shell pkg-config --cflags gtk4)
 
+.PHONY: gresources
+
 emulator: gresources $(COBJ)
 	gcc $(COBJ) $(LIBS) -g -o emu
 

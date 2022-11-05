@@ -1,16 +1,20 @@
 #include "cpu.h"
 #include "opcodes.h"
 #include "interface.h"
+#include "image_reader.h"
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 extern uint8_t kill_emu_thread;
 
 void _reset_cpu(Memory* mem) {
-	cpu_glob.PC = mem->data[0xfffd] * 0x100 + mem->data[0xfffc];
 	cpu_glob.SP = 0xff;
 	cpu_glob.X = cpu_glob.Y = cpu_glob.A = 0;
 	memset(&cpu_glob.P, 0, sizeof(cpu_glob.P));
+	memset(mem_glob.data, 0, 0x10000);
+	read_image(&mem_glob);
+	cpu_glob.PC = mem->data[0xfffd] * 0x100 + mem->data[0xfffc];
 }
 
 void _exec_cpu_step(uint32_t steps, Memory *mem) {
