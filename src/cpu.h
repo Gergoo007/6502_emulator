@@ -23,8 +23,8 @@ typedef struct CPU {
 	byte 	X, Y;			// Index
 
 	void (*reset) 			(Memory*);				// Reset the processor
-	void (*nmi)	();									// Called when hardware interrupt is sent, jumps to handler
-	void (*irq)	();									// Called when hardware interrupt is sent, jumps to handler
+	void (*nmi)				();						// Called when hardware interrupt is sent, jumps to handler
+	void (*irq)				();						// Called when hardware interrupt is sent, jumps to handler
 	void (*exec_by_cycles) 	(uint32_t, Memory*);	// Execute instruction by cycles
 	void (*exec_by_step) 	(uint32_t, Memory*);	// Execute instruction by steps
 	void (*exec_continous) 	(Memory*);				// Execute instruction until 0x00 is read

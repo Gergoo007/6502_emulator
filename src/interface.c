@@ -32,6 +32,9 @@ typedef struct emulator_gui {
 	GtkButton* btn_run;
 	GtkButton* btn_step;
 	GtkButton* btn_stop;
+	GtkButton* btn_reset;
+	GtkButton* btn_nmi;
+	GtkButton* btn_irq;
 
 	GtkTextView* code;
 	GtkTextView* ram;
@@ -132,6 +135,16 @@ static void reset_btn_clicked(GtkWidget* widget, gpointer data) {
 	update_display();
 }
 
+static void nmi_btn_clicked(GtkWidget* widget, gpointer data) {
+	cpu_glob.nmi();
+	update_display();
+}
+
+static void irq_btn_clicked(GtkWidget* widget, gpointer data) {
+	cpu_glob.irq();
+	update_display();
+}
+
 void update_display() {
 	char text[255];
 
@@ -200,7 +213,6 @@ static void activate(GApplication* app, gpointer cpu) {
 	GResource* resources = gresource_get_resource();
 
 	GtkBuilder* builder = gtk_builder_new_from_resource("/me/gergoo007/emu/main.ui");
-	//gtk_builder_add_from_file(builder, "/home/gergoo007/.local/share/6502/gui.ui", NULL);
 
 	GtkCssProvider* css = gtk_css_provider_new();
 	gtk_css_provider_load_from_resource(GTK_CSS_PROVIDER(css), 
@@ -239,6 +251,12 @@ static void activate(GApplication* app, gpointer cpu) {
 	g_signal_connect(stop_btn, "clicked", G_CALLBACK(stop_btn_clicked), NULL);
 	gtk_widget_set_sensitive(GTK_WIDGET(stop_btn), FALSE);
 
+	GObject* nmi_btn = gtk_builder_get_object(builder, "nmi_btn");
+	g_signal_connect(nmi_btn, "clicked", G_CALLBACK(nmi_btn_clicked), NULL);
+
+	GObject* irq_btn = gtk_builder_get_object(builder, "irq_btn");
+	g_signal_connect(irq_btn, "clicked", G_CALLBACK(irq_btn_clicked), NULL);
+
 	// Create register labels
 	GObject* a_reg_label 	= gtk_builder_get_object(builder, "a_reg_lab");
 	GObject* x_reg_label 	= gtk_builder_get_object(builder, "x_reg_lab");
@@ -250,6 +268,9 @@ static void activate(GApplication* app, gpointer cpu) {
 	gui_struct.btn_step 	= GTK_BUTTON(step_btn);
 	gui_struct.btn_stop 	= GTK_BUTTON(stop_btn);
 	gui_struct.btn_run 		= GTK_BUTTON(run_btn);
+	gui_struct.btn_reset 	= GTK_BUTTON(reset_btn);
+	gui_struct.btn_nmi 		= GTK_BUTTON(nmi_btn);
+	gui_struct.btn_irq 		= GTK_BUTTON(irq_btn);
 	gui_struct.A 			= GTK_LABEL(a_reg_label);
 	gui_struct.X 			= GTK_LABEL(x_reg_label);
 	gui_struct.Y 			= GTK_LABEL(y_reg_label);

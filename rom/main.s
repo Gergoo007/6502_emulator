@@ -1,11 +1,11 @@
 	.org $8000
 
 irq:
-	LDA #$35
+	INC $00
 	RTI
 
 nmi:
-	LDA #$32
+	INC $01
 	RTI
 
 test:

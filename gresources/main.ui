@@ -13,9 +13,14 @@
 						<object class="GtkBox">
 							<property name="orientation">horizontal</property>
 							<child>
-								<object class="GtkLabel">
-									<property name="label">Cycles: (placeholder)</property>
-									<property name="name">header_label</property>
+								<object id="nmi_btn" class="GtkButton">
+									<property name="margin-end">7</property>
+									<property name="label">Trigger NMI!</property>
+								</object>
+							</child>
+							<child type="end">
+								<object id="irq_btn" class="GtkButton">
+									<property name="label">Trigger IRQ!</property>
 								</object>
 							</child>
 						</object>
@@ -60,16 +65,19 @@
 							<property name="orientation">horizontal</property>
 							<child>
 								<object id="run_btn" class="GtkButton">
+									<property name="margin-end">7</property>
 									<property name="label">Run!</property>
 								</object>
 							</child>
 							<child>
 								<object id="stop_btn" class="GtkButton">
+									<property name="margin-end">7</property>
 									<property name="label">Stop!</property>
 								</object>
 							</child>
 							<child>
 								<object id="step_btn" class="GtkButton">
+									<property name="margin-end">7</property>
 									<property name="label">Step!</property>
 								</object>
 							</child>
