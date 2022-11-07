@@ -257,6 +257,12 @@ static void activate(GApplication* app, gpointer cpu) {
 	GObject* irq_btn = gtk_builder_get_object(builder, "irq_btn");
 	g_signal_connect(irq_btn, "clicked", G_CALLBACK(irq_btn_clicked), NULL);
 
+	GObject* main_stack_switcher = gtk_builder_get_object(builder, "main_stack_switcher");
+	GObject* main_stack = gtk_builder_get_object(builder, "main_stack");
+	gtk_stack_switcher_set_stack(GTK_STACK_SWITCHER(main_stack_switcher), GTK_STACK(main_stack));
+
+	gtk_widget_show(GTK_WIDGET(main_stack_switcher));
+
 	// Create register labels
 	GObject* a_reg_label 	= gtk_builder_get_object(builder, "a_reg_lab");
 	GObject* x_reg_label 	= gtk_builder_get_object(builder, "x_reg_lab");

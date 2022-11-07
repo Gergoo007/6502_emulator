@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+<object id="window" class="GtkWindow">
+	<property name="title">6502 emulator</property>
+	<property name="default-width">1280</property>
+	<property name="default-height">720</property>
+	<child>
+		<object class="GtkBox">
+			<property name="orientation">vertical</property>
+			<child>
+				<object class="GtkStackSwitcher">
+
+				</object>
+			</child>
+			<child>
+				<object id="header" class="GtkCenterBox">
+					<child type="start">
+						<object class="GtkBox">
+							<property name="orientation">horizontal</property>
+							<child>
+								<object id="nmi_btn" class="GtkButton">
+									<property name="margin-end">7</property>
+									<property name="label">Trigger NMI!</property>
+								</object>
+							</child>
+							<child type="end">
+								<object id="irq_btn" class="GtkButton">
+									<property name="label">Trigger IRQ!</property>
+								</object>
+							</child>
+						</object>
+					</child>
+					<child type="center">
+						<object class="GtkBox">
+							<property name="orientation">horizontal</property>
+							<child>
+								<object id="pc_reg_lab" class="GtkLabel">
+									<property name="label">PC: 0x8000  </property>
+									<property name="name">header_label</property>
+								</object>
+							</child>
+							<child>
+								<object id="a_reg_lab" class="GtkLabel">
+									<property name="label">A: 0x20  </property>
+									<property name="name">header_label</property>
+								</object>
+							</child>
+							<child>
+								<object id="x_reg_lab" class="GtkLabel">
+									<property name="label">X: 0x30  </property>
+									<property name="name">header_label</property>
+								</object>
+							</child>
+							<child>
+								<object id="y_reg_lab" class="GtkLabel">
+									<property name="label">Y: 0x00  </property>
+									<property name="name">header_label</property>
+								</object>
+							</child>
+							<child>
+								<object id="p_reg_lab" class="GtkLabel">
+									<property name="label">P: 0b01010010</property>
+									<property name="name">header_label</property>
+								</object>
+							</child>
+						</object>
+					</child>
+					<child type="end">
+						<object class="GtkBox">
+							<property name="orientation">horizontal</property>
+							<child>
+								<object id="run_btn" class="GtkButton">
+									<property name="margin-end">7</property>
+									<property name="label">Run!</property>
+								</object>
+							</child>
+							<child>
+								<object id="stop_btn" class="GtkButton">
+									<property name="margin-end">7</property>
+									<property name="label">Stop!</property>
+								</object>
+							</child>
+							<child>
+								<object id="step_btn" class="GtkButton">
+									<property name="margin-end">7</property>
+									<property name="label">Step!</property>
+								</object>
+							</child>
+							<child>
+								<object id="reset_btn" class="GtkButton">
+									<property name="label">Reset!</property>
+								</object>
+							</child>
+						</object>
+					</child>
+				</object>
+			</child>
+			<child>
+				<object id="main_pane" class="GtkPaned">
+					<layout>
+						<property name="column">0</property>
+						<property name="row">1</property>
+					</layout>	
+					<property name="orientation">horizontal</property>
+					<child>
+						<object id="left_pane" class="GtkPaned">
+							<property name="orientation">vertical</property>
+							<child>
+								<object id="framebuffer" class="GtkGLArea">
+									<property name="name">code</property>
+
+									<layout>
+										<property name="column">0</property>
+										<property name="row">0</property>
+									</layout>
+								</object>
+							</child>
+							<child>
+								<object class="GtkScrolledWindow">
+									<child>
+										<object id="ram" class="GtkTextView">
+											<property name="vexpand">1</property>
+											<layout>
+												<property name="column">0</property>
+												<property name="row">1</property>
+											</layout>
+										</object>
+									</child>
+								</object>
+							</child>
+						</object>
+					</child>
+					<child>
+						<object id="right_pane" class="GtkPaned">
+							<property name="orientation">vertical</property>
+							<property name="position">450</property>
+							<child>
+								<object class="GtkScrolledWindow">
+									<child>
+										<object id="code" class="GtkTextView">
+											<property name="hexpand">1</property>
+											<layout>
+												<property name="column">1</property>
+												<property name="row">0</property>
+											</layout>
+										</object>
+									</child>
+								</object>
+							</child>
+							<child>
+								<object class="GtkScrolledWindow">
+									<child>
+										<object id="rom" class="GtkTextView">
+											<layout>
+												<property name="column">1</property>
+												<property name="row">1</property>
+											</layout>
+										</object>
+									</child>
+								</object>
+							</child>
+						</object>
+					</child>
+				</object>
+			</child>		
+		</object>
+	</child>
+</object>
+</interface>
