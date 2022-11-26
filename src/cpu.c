@@ -25,7 +25,6 @@ void _exec_cpu_step(uint32_t steps, Memory *mem) {
 			break;
 
 		execute(instruct, &cpu_glob, mem, 0xff);
-		update_display();
 		steps--;
 	}
 }
@@ -41,21 +40,11 @@ void _exec_cpu_cycle(uint32_t cycles, Memory *mem) {
 }
 
 void _exec_cpu_cont(Memory *mem) {
-	struct timespec ts;
-	ts.tv_sec = 0;
-	ts.tv_nsec = 90 /* milliseconds */ * 1000000;
-
-	while (1) {
-		if(kill_emu_thread)
-			return;
-
+	while (!kill_emu_thread) {
 		byte instruct = mem->fetch(0xffff);
 		if(instruct == BRK)
 			break;
-
-		nanosleep(&ts, &ts);
-
-		update_display();
+		
 		execute(instruct, &cpu_glob, mem, 0xffff);
 	}
 }

@@ -22,7 +22,7 @@
 					<child>
 						<object class="GtkStackPage">
 							<property name="name">combined_page</property>
-							<property name="title">combined_page</property>
+							<property name="title">Combined View</property>
 							<property name="child">
 								<object class="GtkBox">
 									<property name="orientation">vertical</property>
@@ -184,10 +184,75 @@
 					<child>
 						<object class="GtkStackPage">
 							<property name="name">test_page</property>
-							<property name="title">test_page</property>
+							<property name="title">CPU View</property>
 							<property name="child">
-								<object class="GtkLabel">
-									<property name="label">hahayes</property>
+								<object class="GtkGrid">
+									<property name="row-homogeneous">true</property>
+									<property name="column-homogeneous">true</property>
+									<child>
+										<object class="GtkFrame">
+											<layout>
+												<property name="column">0</property>
+												<property name="row">0</property>
+											</layout>
+											<child type="label">
+												<object class="GtkLabel" id="reg_frame_lab">
+													<property name="label">Registers</property>
+												</object>
+											</child>
+											<child>
+												<object class="GtkGrid">
+													<child>
+														<object class="GtkBox">
+															<property name="orientation">horizontal</property>
+															<child>
+																<object class="GtkLabel">
+																	<property name="label">A: </property>
+																</object>
+															</child>
+															<child>
+																<object class="GtkEntry">
+
+																</object>
+															</child>
+														</object>
+													</child>
+												</object>
+											</child>
+										</object>
+									</child>
+									<child>
+										<object class="GtkFrame">
+											<layout>
+												<property name="column">1</property>
+												<property name="row">0</property>
+											</layout>
+											<child type="label">
+												<object class="GtkLabel" id="cpu_frame_lab">
+													<property name="label">haha</property>
+												</object>
+											</child>
+											<child>
+												<object class="GtkGrid">
+													<child>
+														<object class="GtkBox">
+															<property name="orientation">horizontal</property>
+															<child>
+																<object class="GtkLabel">
+																	<property name="label">A: </property>
+																</object>
+															</child>
+															<child>
+																<object class="GtkEntry">
+																	
+																</object>
+															</child>
+														</object>
+													</child>
+												</object>
+											</child>
+										</object>
+									</child>
 								</object>
 							</property>
 						</object>

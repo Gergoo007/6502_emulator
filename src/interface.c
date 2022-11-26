@@ -9,6 +9,8 @@
  
 #include <epoxy/gl.h>
 
+#include <pthread.h>
+
 #include <string.h>
 
 //#define APPLICATION_ID "me.gergoo007.6502emu"
@@ -18,6 +20,8 @@
 #define FB_SIZE 64 * 8
 
 uint8_t kill_emu_thread = 1;
+
+pthread_t id;
 
 char ram_buffer[(0x8000 * 55) + 1], rom_buffer[(0x8000 * 55) + 1];
 
@@ -103,15 +107,21 @@ void parse_rom(Memory* mem) {
 	}
 }
 
-gboolean run_emu() {
-	if(!kill_emu_thread)
-		cpu_glob.exec_by_step(2, &mem_glob);
-	
+gboolean update_cb() {
+	update_display();
+
 	return TRUE;
+}
+
+void* launch_emu_thread() {
+	cpu_glob.exec_continous(&mem_glob);
+	pthread_exit(NULL);
 }
 
 static void run_btn_clicked(GtkWidget* widget, gpointer data) {
 	kill_emu_thread = 0;
+
+	pthread_create(&id, NULL, launch_emu_thread, NULL);
 	
 	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_run), FALSE);
 	gtk_widget_set_sensitive(GTK_WIDGET(gui_struct.btn_step), FALSE);
@@ -179,8 +189,8 @@ void update_display() {
 // 256 colors: each pixel occupies 8 bits
 // 1 byte will be 1 pixel
 static gboolean render(GtkGLArea *area, GdkGLContext *context) {
-	byte framebuffer[64][64];
-	memcpy(framebuffer, &(mem_glob.data[0x2000]), 64*64);
+	byte framebuffer[16][16];
+	memcpy(framebuffer, &(mem_glob.data[0x2000]), 16*16);
 
 	typedef struct {
 		byte b : 2;
@@ -192,12 +202,12 @@ static gboolean render(GtkGLArea *area, GdkGLContext *context) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glEnable(GL_SCISSOR_TEST);
-	for (uint16_t x = 0; x < 64; x++) {		// row (x)
-		for (uint16_t y = 0; y < 64; y++) {	// column (y)
+	for (uint16_t x = 0; x < 16; x++) {		// row (x)
+		for (uint16_t y = 0; y < 16; y++) {	// column (y)
 			pixel _pixel;
 			memcpy(&_pixel, &(framebuffer[y][x]), 1);
 			
-			glScissor(x * 8, (63 - y) * 8, 8, 8);
+			glScissor(x * 32, (15 - y) * 32, 32, 32);
 
 			glClearColor((float) _pixel.r / 8, (float) _pixel.g / 8, (float) _pixel.b / 4, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -223,7 +233,7 @@ static void activate(GApplication* app, gpointer cpu) {
 
 	GObject* window = gtk_builder_get_object(builder, "window");
 	gtk_window_set_application(GTK_WINDOW(window), GTK_APPLICATION(app));
-	gtk_widget_add_tick_callback(GTK_WIDGET(window), run_emu, NULL, NULL);
+	gtk_widget_add_tick_callback(GTK_WIDGET(window), update_cb, NULL, NULL);
 
 	GObject* framebuffer = gtk_builder_get_object(builder, "framebuffer");
 	gtk_widget_set_size_request(GTK_WIDGET(framebuffer), 64 * 8, 64 * 8);
